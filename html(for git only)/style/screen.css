@@ -294,3 +294,8 @@ body {
 .c-room--on .c-power-btn:active {
   box-shadow: inset 0px 6px 8px -1px #41b77b;
 }
+
+#mapid {
+  height: 300px;
+  width: 600px;
+}
