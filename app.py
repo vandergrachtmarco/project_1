@@ -6,20 +6,18 @@ from flask_cors import CORS
 
 import time
 import threading
-
 import board
 import busio
+
 import adafruit_mpu6050
+import adafruit_gps
+import serial
 
 i2c = busio.I2C(board.SCL, board.SDA)
-mpu = adafruit_mpu6050.MPU6050(i2c)
+#mpu = adafruit_mpu6050.MPU6050(i2c)
 
-# import adafruit_gps
 
-# uart = busio.UART(board.TX, board.RX, baudrate=9600, timeout=10)
-# gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
-# gps.send_command(b"PMTK220,1000")
-
+gps = 0
 
 # Code voor led
 from helpers.klasseknop import Button
@@ -51,6 +49,10 @@ def hallo():
 def initial_connection():
     print('A new client connect')
     # # Send to the client!
+    uart = serial.Serial("/dev/ttyS0", baudrate=9600, timeout=10)
+    gps = adafruit_gps.GPS(uart, debug=False)
+    gps.send_command(b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
+    gps.send_command(b'PMTK220,1000')
 
 
 @socketio.on('F2B_get_accel_data')
@@ -77,8 +79,43 @@ def get_accel_data():
 
 @socketio.on('F2B_get_GPS_data')
 def get_GPS_data():
-    adafruitGPS_data = "missing"
-    socketio.emit('BF2_return_GPS_data', adafruitGPS_data)
+    uart = serial.Serial("/dev/ttyS0", baudrate=9600, timeout=10)
+    gps = adafruit_gps.GPS(uart, debug=False)
+    gps.send_command(b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
+    gps.send_command(b'PMTK220,1000')
+
+    gps.update()
+
+    while not gps.has_fix:
+        print(gps.nmea_sentence)
+        print('Waiting for fix...')
+        gps.update()
+        time.sleep(1)
+        continue
+
+    # print('=' * 40)  # Print a separator line.
+    print('Latitude: {0:.6f} degrees'.format(gps.latitude))
+    print('Longitude: {0:.6f} degrees'.format(gps.longitude))
+    print("Speed: " + str(gps.speed_knots) + "knots")
+
+    idwp = (((DataRepository.read_waypoints_maxid())['maxid']) + 1)
+    longitudewp = float("{:.4f}".format(gps.longitude))
+    latitudewp = float("{:.5f}".format(gps.latitude))
+    speedwp = gps.speed_knots
+
+    DataRepository.insert_waypoint(idwp, longitudewp, latitudewp, speedwp)
+
+    adafruitGPS_data = {'Latitude': longitudewp, 'Longitude': latitudewp, 'Speed': speedwp}
+    socketio.emit('B2F_return_GPS_data', adafruitGPS_data)
+
+
+@socketio.on('F2B_setup_GPS')
+def setup_GPS():
+    print("setting up GPS")
+    uart = serial.Serial("/dev/ttyS0", baudrate=9600, timeout=10)
+    gps = adafruit_gps.GPS(uart, debug=False)
+    gps.send_command(b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
+    gps.send_command(b'PMTK220,1000')
 
 
 if __name__ == '__main__':

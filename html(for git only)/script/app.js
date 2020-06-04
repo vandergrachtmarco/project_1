@@ -28,18 +28,23 @@ const listenToSocket = function() {
 
     socket.on("B2F_return_GPS_data", function(jsonObject){
         console.log(jsonObject);
+        console.log(jsonObject.Latitude);
+        console.log(jsonObject.Longitude);
+        console.log(jsonObject.Speed);
 
-        latitude = jsonObject.latitude
-        longitude = jsonObject.longitude
+        latitude = jsonObject.Latitude
+        longitude = jsonObject.Longitude
+        speed = (jsonObject.Speed*1.852)
 
         document.querySelector(".js-lat").innerHTML = (latitude + " graden");
         document.querySelector(".js-long").innerHTML = (longitude + " graden");
-        document.querySelector(".js-speed").innerHTML = (jsonObject.speed + " graden");
+        document.querySelector(".js-speed").innerHTML = (speed + " km/h");
 
         mymap.eachLayer(function(layer) {
             mymap.removeLayer(layer);
         });
         LoadTitleLayer();
+        mymap.setView([latitude, longitude], 17);
         var marker = L.marker([latitude, longitude], { title: marker }).addTo(mymap);
     });
 };
@@ -62,6 +67,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     mymap = L.map('mapid').setView([50.84673, 4.35247], 12);
 
+    socket.emit("F2B_setup_GPS")
     LoadTitleLayer();
     listenToUI();
     listenToSocket();
