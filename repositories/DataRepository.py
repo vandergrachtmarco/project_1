@@ -12,8 +12,14 @@ class DataRepository:
 
     @staticmethod
     def read_aantal_shocken():
-        sql = "SELECT aantal_shocken from orders"
+        sql = "SELECT aantal_shocken FROM orders"
         return Database.get_rows(sql)
+
+    @staticmethod
+    def read_aantal_shocken_by_idorder(id):
+        sql = "SELECT aantal_shocken FROM orders WHERE idorder = %s"
+        params = [id]
+        return Database.get_one_row(sql, params)
 
     @staticmethod
     def update_aantal_shocken(id, aantal_shocken):
@@ -35,6 +41,18 @@ class DataRepository:
         return Database.get_one_row(sql, params)
 
     @staticmethod
+    def read_ordered_products_by_id(id):
+        sql = "SELECT o.idorder, p.name, c.name, i.amount from project_1.order_items as i inner join project_1.products as p inner join project_1.category as c inner join project_1.orders as o WHERE o.idorder = %s and o.idorder = i.orders_idorder and p.idproduct = i.products_idproduct and c.idcategory = i.products_category_idcategory"
+        params = [id]
+        return Database.get_one_row(sql, params)
+
+    @staticmethod
+    def read_order_cost_by_id(id):
+        sql = "SELECT o.idorder, sum(p.price * i.amount) as price from project_1.order_items as i inner join project_1.products as p inner join project_1.category as c inner join project_1.orders as o WHERE o.idorder = %s and o.idorder = i.orders_idorder and p.idproduct = i.products_idproduct and c.idcategory = i.products_category_idcategory group by o.idorder"
+        params = [id]
+        return Database.get_one_row(sql, params)
+
+    @staticmethod
     def update_order_start(id, starttime):
         sql = "UPDATE orders SET deliverystarttime = %s WHERE idorder = %s"
         params = [starttime, id]
@@ -45,6 +63,11 @@ class DataRepository:
         sql = "UPDATE orders SET deliveryendtime = %s WHERE idorder = %s"
         params = [endtime, id]
         return Database.execute_sql(sql, params)
+
+    @staticmethod
+    def read_order_maxid():
+        sql = "SELECT max(idorder) as maxid FROM orders;"
+        return Database.get_one_row(sql)
 
     ###########################################################################
 
@@ -57,7 +80,7 @@ class DataRepository:
     def read_waypoints_by_idorder(id):
         sql = "SELECT w.longitude, w.latitude from order_route as r inner join waypoints as w inner join orders as o WHERE o.idorder = %s and o.idorder = r.order_idorder and w.idwaypoint = r.waypoints_idwaypoint"
         params = [id]
-        return Database.get_one_row(sql, params)
+        return Database.get_rows(sql, params)
 
     @staticmethod
     def insert_waypoint(id, longitude, latitude, avgspeed):
