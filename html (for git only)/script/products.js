@@ -27,7 +27,7 @@ const listenToSocket = function() {
 document.addEventListener("DOMContentLoaded", function() {
     console.info("DOM geladen");
 
-    socket.emit("F2B_show_products");
+    socket.emit("F2B_get_products");
     socket.emit("F2B_show_IP");
     listenToUI();
     listenToSocket();

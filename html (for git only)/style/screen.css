@@ -985,11 +985,17 @@ a:focus {
     margin: 16px 16px;
     text-align: center;
     border-radius: 20px;
+    font-size: 17px;
+}
+
+.columnproduct {
+    height: 490px;
+    text-align: center;
 }
 
 .columnText {
-    text-align: left;
-    padding: 10px 0px 0px 46px;
+    text-align: center;
+    padding: 10px 0px 0px 0px;
 }
 
 .columnText1 {
@@ -999,7 +1005,6 @@ a:focus {
 
 .columnLink {
     text-align: center;
-    width: 226px;
     padding: 10px 0px 0px 0px;
     font-weight: bold;
     font-size: 12px;
@@ -1161,6 +1166,8 @@ a:focus {
 
 .u-1-of-2 {
     flex-basis: calc(100% / 2) !important;
+    display: inline-flex;
+    padding: 8px 0 0 35px;
 }
 
 .u-1-of-3 {

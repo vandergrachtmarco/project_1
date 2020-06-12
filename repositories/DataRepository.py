@@ -69,6 +69,24 @@ class DataRepository:
         sql = "SELECT max(idorder) as maxid FROM orders;"
         return Database.get_one_row(sql)
 
+    @staticmethod
+    def create_order(id, adress, ordertime):
+        sql = "INSERT INTO orders (idorder, adress, ordertime, idstep) VALUES (%s, %s, %s, 1);"
+        params = [id, adress, ordertime]
+        return Database.execute_sql(sql, params)
+
+    @staticmethod
+    def create_order_item(orderid, productid, categoryid, amount):
+        sql = "INSERT INTO order_items (orders_idorder, products_idproduct, products_category_idcategory, amount) VALUES (%s, %s, %s, %s);"
+        params = [orderid, productid, categoryid, amount]
+        return Database.execute_sql(sql, params)
+
+    @staticmethod
+    def create_order_route(orderid, waypointid):
+        sql = "INSERT INTO order_route (order_idorder, waypoints_idwaypoint) VALUES (%s, %s);"
+        params = [orderid, waypointid]
+        return Database.execute_sql(sql, params)
+
     ###########################################################################
 
     @staticmethod
@@ -92,6 +110,19 @@ class DataRepository:
     def read_waypoints_maxid():
         sql = "SELECT max(idwaypoint) as maxid FROM waypoints;"
         return Database.get_one_row(sql)
+
+    ###########################################################################
+
+    @staticmethod
+    def read_products():
+        sql = "SELECT p.idproduct, p.name, p.price, p.description, p.instock, c.name as category FROM products as p inner join category as c where p.category_idcategory = c.idcategory;"
+        return Database.get_rows(sql)
+
+    @staticmethod
+    def get_category_by_idproduct(id):
+        sql = "SELECT c.idcategory as idcategory FROM products as p inner join category as c where p.category_idcategory = c.idcategory and p.idproduct = %s;"
+        params = [id]
+        return Database.get_one_row(sql, params)
 
     ###########################################################################
 

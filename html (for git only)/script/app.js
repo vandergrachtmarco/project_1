@@ -18,6 +18,13 @@ const listenToUI = function() {
         });
     }
 
+    knop = document.querySelector(".js-arrival");
+    if (knop) {
+        knop.addEventListener("click", function() {
+            socket.emit("F2B_update_endtime")
+        });
+    }
+
     let toggleTrigger = document.querySelectorAll(".js-toggle-nav");
     for (let i = 0; i < toggleTrigger.length; i++) {
         toggleTrigger[i].addEventListener("click", function() {
@@ -32,10 +39,15 @@ const listenToSocket = function() {
         console.log("verbonden met socket webserver");
     });
 
+    socket.on("B2F_redirect_index", function() {
+        window.location.replace("http://192.168.0.100/");
+    });
+
     socket.on("B2F_return_orders", function(data) {
         //console.log(data);
         document.querySelector(".js-orderZone").innerHTML = data;
         loadMap();
+        listenToUI();
         socket.emit("F2B_get_route")
     });
 
@@ -92,12 +104,29 @@ const LoadTitleLayer = function() {
     }).addTo(mymap);
 };
 
-function loadMap() {
+const loadMap = function() {
     //document.querySelector(".js-shock").innerHTML = "0 shocken";
     mymap = L.map('mapid').setView([50.84673, 4.35247], 12);
     LoadTitleLayer();
     socket.emit("F2B_setup_GPS");
 };
+
+const createOrder = function() {
+    submitform = getUrlVars(window.location.href);
+    console.log(submitform);
+    socket.emit("F2B_create_order", submitform);
+};
+
+function getUrlVars(url) {
+    var hash;
+    var myJson = {};
+    var hashes = url.slice(url.indexOf('?') + 1).split('&');
+    for (var i = 0; i < hashes.length; i++) {
+        hash = hashes[i].split('=');
+        myJson[hash[0]] = hash[1];
+    }
+    return myJson;
+}
 
 document.addEventListener("DOMContentLoaded", function() {
     console.info("DOM geladen");
@@ -105,14 +134,18 @@ document.addEventListener("DOMContentLoaded", function() {
     html_ordersHolder = document.querySelector(".js-orders");
 
     if (html_mapidHolder) {
-        socket.emit("F2B_get_last_order")
+        socket.emit("F2B_get_last_order");
     }
 
     if (html_mapidHolder) {
         loadMap();
     }
 
-    socket.emit("F2B_show_IP")
+    if ((window.location.href).includes("?")) {
+        console.log("submit found");
+        createOrder();
+    }
+
     listenToUI();
     listenToSocket();
 });
